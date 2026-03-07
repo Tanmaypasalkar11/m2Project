@@ -8,7 +8,12 @@ export default function Header({ activeTab, setActiveTab }) {
           <span className="dashboard-brand-logo" role="img" aria-label="Kirloskar logo" />
         </div>
 
-        <div className="dashboard-status-dots">
+        <div
+          className="dashboard-status-dots"
+          style={{
+            transform: "translate(-8px, 5px)",
+          }}
+        >
           <span
             style={{
               display: "inline-block",
@@ -28,7 +33,7 @@ export default function Header({ activeTab, setActiveTab }) {
               height: 13,
               borderRadius: "50%",
               background: "#6AFF79",
-              boxShadow: "0 0 10px rgba(106,255,121,0.6)",
+              boxShadow: "0 0 8px rgba(106,255,121,0.5)",
             }}
           />
         </div>

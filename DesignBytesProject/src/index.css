@@ -12,7 +12,8 @@ html, body, #root {
   width: 100%;
   height: 100%;
   min-height: 100vh;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body {
@@ -105,7 +106,7 @@ button {
 .dashboard-status-dots {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 6px;
   position: relative;
   isolation: isolate;
 }
@@ -514,6 +515,7 @@ button {
   align-self: auto;
   border-radius: 5.333px;
   background: #173439;
+  overflow: hidden;
 }
 
 .system-ecu-reading--with-unit {
@@ -552,10 +554,6 @@ button {
   background: rgba(15, 41, 45, 0.50);
 }
 
-.system-ecu-reading-unit--with-unit::before {
-  content: none;
-}
-
 .system-ecu-reading-unit::before {
   content: "";
   position: absolute;
@@ -566,6 +564,10 @@ button {
   box-shadow: none;
   filter: none;
   z-index: -1;
+}
+
+.system-ecu-reading-unit.system-ecu-reading-unit--with-unit::before {
+  content: none;
 }
 
 .active-alerts-panel {
@@ -631,10 +633,10 @@ button {
   color: #FFF;
   text-align: center;
   font-family: Inter, sans-serif;
-  font-size: 22px;
+  font-size: 24px;
   font-style: normal;
   font-weight: 600;
-  line-height: 18.667px;
+  line-height: 20px;
 }
 
 .active-alert-icon-wrap {
@@ -658,8 +660,8 @@ button {
 }
 
 .active-alert-icon {
-  width: 64px;
-  height: 44px;
+  width: 76px;
+  height: 54px;
   object-fit: contain;
   flex-shrink: 0;
   display: block;
@@ -671,10 +673,10 @@ button {
   color: #FFF;
   text-align: center;
   font-family: Inter, sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   font-style: normal;
   font-weight: 400;
-  line-height: 18.667px;
+  line-height: 19px;
 }
 
 .control-state-panel {
@@ -712,7 +714,7 @@ button {
   width: 100%;
   align-items: center;
   flex-wrap: nowrap;
-  gap: var(--space-2);
+  gap: 16px;
 }
 
 .control-state-button {
@@ -831,15 +833,20 @@ button {
 }
 
 .bottom-action-icon {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   object-fit: contain;
   flex-shrink: 0;
 }
 
 .bottom-action-icon--genset {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
+}
+
+.bottom-action-icon--h2 {
+  width: 26px;
+  height: 26px;
 }
 
 .bottom-action-label {
