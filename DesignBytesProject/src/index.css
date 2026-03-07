@@ -12,6 +12,7 @@ html, body, #root {
   width: 100%;
   height: 100%;
   min-height: 100vh;
+  overflow: auto;
 }
 
 body {
@@ -41,9 +42,9 @@ button {
   --dashboard-max-width: 1280px;
   --dashboard-sidebar-width: 530px;
   --dashboard-shell-padding: var(--space-6);
-  --dashboard-content-gutter: var(--space-6);
+  --dashboard-content-gutter: 58px;
   --dashboard-main-padding-y: var(--space-5);
-  --dashboard-section-gap: var(--space-4);
+  --dashboard-section-gap: 16px;
   --dashboard-panel-padding: var(--space-5);
   --dashboard-tab-group-width: 469.333px;
   --dashboard-tab-gap: 28.444px;
@@ -59,18 +60,21 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--dashboard-shell-padding);
+  overflow: visible;
 }
 
 .dashboard-frame {
   width: var(--dashboard-max-width);
+  min-width: var(--dashboard-max-width);
   max-width: var(--dashboard-max-width);
   height: var(--dashboard-frame-height);
+  min-height: var(--dashboard-frame-height);
+  max-height: var(--dashboard-frame-height);
   background: var(--dashboard-bg-gradient);
   border-radius: var(--radius-lg);
-  overflow: hidden;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
 }
 
 .dashboard-header {
@@ -180,7 +184,7 @@ button {
 .dashboard-main-stack {
   display: flex;
   flex-direction: column;
-  gap: 19px;
+  gap: 16px;
 }
 
 .panel {
@@ -751,12 +755,20 @@ button {
 
 .dashboard-footer {
   display: flex;
-  align-items: center;
+  width: 1280px;
+  max-width: 100%;
+  height: 80px;
+  padding: 13.333px 26.667px 13.333px 13.333px;
   justify-content: space-between;
-  padding: var(--space-3) var(--dashboard-content-gutter);
-  background: rgba(8, 18, 22, 0.85);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  gap: var(--space-3);
+  align-items: center;
+  align-content: normal;
+  row-gap: 0;
+  flex-wrap: nowrap;
+  box-sizing: border-box;
+  background: #0A181A;
+  border-top: 0.667px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 2.667px 2.667px 16px 0 rgba(0, 0, 0, 0.40) inset;
+  backdrop-filter: blur(4px);
 }
 
 .bottom-meta {
@@ -773,105 +785,95 @@ button {
 
 .bottom-actions {
   display: flex;
-  gap: var(--space-3);
+  flex: 1 0 0;
+  justify-content: center;
+  align-items: center;
+  gap: 45px;
+  flex-wrap: nowrap;
+  box-shadow: none;
+  filter: none;
 }
 
 .bottom-action-button {
   display: flex;
+  width: 140px;
+  height: 45px;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-5);
-  border-radius: var(--radius-md);
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+  border-radius: 9px;
+  border: 0.75px solid rgba(255, 255, 255, 0.16);
+  background: rgba(58, 58, 59, 0.72);
+  backdrop-filter: blur(12px);
+  box-shadow: inset 1.5px 1.5px 9px 1.5px rgba(225, 224, 224, 0.12);
+  font-family: Poppins, sans-serif;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 16.5px;
+  color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition: filter 0.15s ease;
+  flex-shrink: 0;
 }
 
+.bottom-action-button--green {
+  background: rgba(34, 255, 69, 0.30);
+}
+
+.bottom-action-button--red {
+  background: rgba(255, 37, 37, 0.32);
+}
+
+.bottom-action-button:hover {
+  filter: brightness(1.08);
+}
+
+.bottom-action-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.bottom-action-icon--genset {
+  width: 20px;
+  height: 20px;
+}
+
+.bottom-action-label {
+  white-space: nowrap;
+}
 .bottom-powered {
-  width: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
   text-align: right;
+  opacity: 0.8;
 }
 
 .bottom-powered-label {
-  font-size: 11px;
-  color: #64748b;
+  color: #fff;
+  text-align: right;
+  font-family: Rambla, sans-serif;
+  font-size: 8px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 14.67px;
 }
 
 .bottom-powered-value {
-  font-size: 13px;
-  font-weight: 700;
-  color: #e2e8f0;
+  color: #fff;
+  text-align: right;
+  font-family: Prompt, sans-serif;
+  font-size: 10.667px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
 }
 
-@media (max-width: 1140px) {
-  .dashboard-main-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .dashboard-frame {
-    height: auto;
-    min-height: var(--dashboard-frame-height);
-  }
-
-  .system-ecu-panel {
-    width: 100%;
-  }
-
-  .system-ecu-row {
-    width: 100%;
-  }
-
-  .active-alerts-list {
-    flex-direction: column;
-  }
-}
-
-@media (max-width: 768px) {
-  :root {
-    --dashboard-shell-padding: var(--space-4);
-    --dashboard-content-gutter: var(--space-4);
-    --dashboard-main-padding-y: var(--space-4);
-    --dashboard-panel-padding: var(--space-4);
-  }
-
-  .fuel-cell-top {
-    flex-direction: column;
-  }
-
-  .fuel-cell-panel {
-    width: 100%;
-    height: auto;
-  }
-
-  .fuel-cell-status-list {
-    width: 100%;
-    height: auto;
-  }
-
-  .dashboard-frame {
-    min-height: auto;
-  }
-
-  .fuel-cell-image {
-    width: 100% !important;
-    max-width: 260px;
-    height: auto !important;
-  }
-
-  .dashboard-footer {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .bottom-actions {
-    flex-wrap: wrap;
-  }
-
-  .bottom-meta,
-  .bottom-powered {
-    width: auto;
-    text-align: left;
-  }
-}
 
 
 

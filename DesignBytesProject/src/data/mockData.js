@@ -28,10 +28,10 @@ export const CONTROL_STATES = [
 ];
 
 export const BOTTOM_ACTIONS = [
-  { id: 1, label: "Genset OFF", variant: "inactive" },
-  { id: 2, label: "Power ON",   variant: "active"   },
-  { id: 3, label: "Power OFF",  variant: "danger"   },
-  { id: 4, label: "H2 Bypass",  variant: "inactive" },
+  { id: 1, label: "Genset OFF", variant: "default", icon: "/GenSetlogo.svg" },
+  { id: 2, label: "Power ON",   variant: "green",   icon: "/power-01.svg"   },
+  { id: 3, label: "Power OFF",  variant: "red",     icon: "/stop.svg"       },
+  { id: 4, label: "H2 Bypass",  variant: "default", icon: "/H2Logo.svg"     },
 ];
 
 export const TABS = ["Fuel Cell", "Methanol Reformer"];
