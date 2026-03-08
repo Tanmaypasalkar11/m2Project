@@ -5,12 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:server": "node --watch server/index.js",
+    "start:server": "node server/index.js",
+    "simulate:python": "python3 tools/hmi_simulator.py",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "ws": "^8.18.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",

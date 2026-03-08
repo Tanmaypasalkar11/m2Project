@@ -1,8 +1,19 @@
 import StatusDot from "./StatusDot";
 import MetricIcon from "./MetricIcon";
-import { FUEL_CELL_STATUS, FUEL_CELL_METRICS } from "../data/mockData";
 
-export default function FuelCellPanel() {
+function resolveMetricValue(metric) {
+  if (metric.displayValue) {
+    return metric.displayValue;
+  }
+
+  if (metric.unit) {
+    return `${metric.value} ${metric.unit}`;
+  }
+
+  return String(metric.value);
+}
+
+export default function FuelCellPanel({ statusItems, metrics }) {
   return (
     <div className="panel fuel-cell-panel">
       <h2 className="panel-title fuel-cell-title">Fuel Cell</h2>
@@ -24,7 +35,7 @@ export default function FuelCellPanel() {
         </div>
 
         <div className="fuel-cell-status-list">
-          {FUEL_CELL_STATUS.map((s) => {
+          {statusItems.map((s) => {
             const isEmergency = s.id === 1;
             const isOverheat = s.id === 2;
             const isAdditionalState = s.id >= 3;
@@ -72,7 +83,7 @@ export default function FuelCellPanel() {
       </div>
 
       <div className="fuel-cell-metrics">
-        {FUEL_CELL_METRICS.map((m, i) => (
+        {metrics.map((m, i) => (
           <div
             key={m.id}
             className={`fuel-cell-metric${i > 0 ? " fuel-cell-metric--with-divider" : ""}`}
@@ -81,7 +92,7 @@ export default function FuelCellPanel() {
               <MetricIcon type={m.iconType} />
               <span className="fuel-cell-metric-text">{m.label}</span>
             </div>
-            <span className="fuel-cell-metric-value">{m.value}</span>
+            <span className="fuel-cell-metric-value">{resolveMetricValue(m)}</span>
           </div>
         ))}
       </div>

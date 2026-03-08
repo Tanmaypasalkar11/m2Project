@@ -6,35 +6,68 @@ import ActiveAlertsPanel from "./components/ActiveAlertsPanel";
 import ControlStatePanel from "./components/ControlStatePanel";
 import BottomBar from "./components/BottomBar";
 import MethanolReformerPanel from "./components/MethanolReformerPanel";
+import useHmiDashboard from "./hooks/useHmiDashboard";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("Fuel Cell");
+  const {
+    dashboardState,
+    transportConnected,
+    pendingActionId,
+    lastError,
+    sendCommand,
+  } = useHmiDashboard(activeTab);
 
   return (
     <div className="dashboard-shell">
       <div className="dashboard-frame">
-        <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+        <Header
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          transportConnected={transportConnected}
+          pythonBridgeOnline={dashboardState.meta.pythonBridgeOnline}
+        />
 
         <main className="dashboard-main">
+          {lastError ? (
+            <div
+              style={{
+                color: "#fca5a5",
+                fontSize: 13,
+                marginBottom: 4,
+              }}
+            >
+              Backend status: {lastError}
+            </div>
+          ) : null}
+
           {activeTab === "Fuel Cell" ? (
             <>
               <div className="dashboard-main-grid">
-                <FuelCellPanel />
+                <FuelCellPanel
+                  statusItems={dashboardState.fuelCell.status}
+                  metrics={dashboardState.fuelCell.metrics}
+                />
 
                 <div className="dashboard-main-stack">
-                  <SystemECUPanel />
-                  <ActiveAlertsPanel />
+                  <SystemECUPanel systemEcu={dashboardState.fuelCell.systemEcu} />
+                  <ActiveAlertsPanel alerts={dashboardState.fuelCell.activeAlerts} />
                 </div>
               </div>
 
-              <ControlStatePanel />
+              <ControlStatePanel controlState={dashboardState.fuelCell.controlState} />
             </>
           ) : (
-            <MethanolReformerPanel />
+            <MethanolReformerPanel dashboard={dashboardState.methanolReformer} />
           )}
         </main>
 
-        <BottomBar />
+        <BottomBar
+          actions={dashboardState.fuelCell.commands}
+          meta={dashboardState.meta}
+          pendingActionId={pendingActionId}
+          onAction={sendCommand}
+        />
       </div>
     </div>
   );

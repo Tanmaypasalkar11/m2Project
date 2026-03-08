@@ -1,5 +1,3 @@
-import { SYSTEM_ECU } from "../data/mockData";
-
 function DataRow({ label, value, unit }) {
   const hasUnit = Boolean(unit);
 
@@ -16,24 +14,23 @@ function DataRow({ label, value, unit }) {
     </div>
   );
 }
-export default function SystemECUPanel() {
+export default function SystemECUPanel({ systemEcu }) {
   return (
     <div className="system-ecu-panel">
       <h2 className="panel-title system-ecu-title">System ECU</h2>
 
       <DataRow
-        label={SYSTEM_ECU.outputRequest.label}
-        value={SYSTEM_ECU.outputRequest.value}
-        unit={SYSTEM_ECU.outputRequest.unit}
+        label={systemEcu.outputRequest.label}
+        value={systemEcu.outputRequest.value}
+        unit={systemEcu.outputRequest.unit}
       />
 
       <DataRow
-        label={SYSTEM_ECU.startStop.label}
-        value={SYSTEM_ECU.startStop.value}
-        unit={SYSTEM_ECU.startStop.unit}
+        label={systemEcu.startStop.label}
+        value={systemEcu.startStop.value}
+        unit={systemEcu.startStop.unit}
       />
     </div>
   );
 }
-
 

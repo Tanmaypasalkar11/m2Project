@@ -1,12 +1,27 @@
 import { useEffect, useState } from "react";
-import { BOTTOM_ACTIONS, DASHBOARD_META } from "../data/mockData";
 
-function FooterActionButton({ icon, label, variant = "default" }) {
+function FooterActionButton({
+  id,
+  icon,
+  label,
+  variant = "default",
+  enabled,
+  pending,
+  onAction,
+}) {
   const isGenset = label === "Genset OFF";
   const isH2Bypass = label === "H2 Bypass";
 
   return (
-    <button className={`bottom-action-button bottom-action-button--${variant}`}>
+    <button
+      className={`bottom-action-button bottom-action-button--${variant}`}
+      disabled={!enabled || pending}
+      onClick={() => onAction(id)}
+      style={{
+        opacity: enabled && !pending ? 1 : 0.45,
+        cursor: enabled && !pending ? "pointer" : "not-allowed",
+      }}
+    >
       <img
         src={icon}
         alt={label}
@@ -17,7 +32,7 @@ function FooterActionButton({ icon, label, variant = "default" }) {
   );
 }
 
-export default function BottomBar() {
+export default function BottomBar({ actions, meta, pendingActionId, onAction }) {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -40,19 +55,23 @@ export default function BottomBar() {
       </div>
 
       <div className="bottom-actions">
-        {BOTTOM_ACTIONS.map((a) => (
+        {actions.map((action) => (
           <FooterActionButton
-            key={a.id}
-            icon={a.icon}
-            label={a.label}
-            variant={a.variant}
+            key={action.id}
+            id={action.id}
+            icon={action.icon}
+            label={action.label}
+            variant={action.variant}
+            enabled={action.enabled}
+            pending={pendingActionId === action.id}
+            onAction={onAction}
           />
         ))}
       </div>
 
       <div className="bottom-powered">
         <div className="bottom-powered-label">Powered By</div>
-        <div className="bottom-powered-value">{DASHBOARD_META.poweredBy}</div>
+        <div className="bottom-powered-value">{meta.poweredBy}</div>
       </div>
     </div>
   );

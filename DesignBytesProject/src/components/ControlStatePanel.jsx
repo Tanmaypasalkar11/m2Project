@@ -1,18 +1,13 @@
-import { useState } from "react";
-import { CONTROL_STATES } from "../data/mockData";
-
-export default function ControlStatePanel() {
-  const [active, setActive] = useState("Stopped");
+export default function ControlStatePanel({ controlState, title = "Control State" }) {
   return (
     <div className="control-state-panel">
-      <h2 className="panel-title control-state-title">Control State</h2>
+      <h2 className="panel-title control-state-title">{title}</h2>
       <div className="control-state-actions">
-        {CONTROL_STATES.map((s) => {
-          const isActive = s === active;
+        {controlState.states.map((state) => {
+          const isActive = state === controlState.active;
           return (
-            <button
-              key={s}
-              onClick={() => setActive(s)}
+            <div
+              key={state}
               className="control-state-button"
               style={{
                 display: "flex",
@@ -32,10 +27,11 @@ export default function ControlStatePanel() {
                 border: isActive ? "none" : "0.667px solid rgba(255, 255, 255, 0.10)",
                 opacity: isActive ? 1 : 0.5,
                 boxShadow: "none",
+                cursor: "default",
               }}
             >
-              {s}
-            </button>
+              {state}
+            </div>
           );
         })}
       </div>

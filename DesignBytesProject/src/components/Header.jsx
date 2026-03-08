@@ -1,6 +1,27 @@
 import { TABS } from "../data/mockData";
 
-export default function Header({ activeTab, setActiveTab }) {
+function dotStyles(isActive) {
+  if (isActive) {
+    return {
+      background: "#6AFF79",
+      border: "1px solid transparent",
+      boxShadow: "0 0 8px rgba(106,255,121,0.5)",
+    };
+  }
+
+  return {
+    background: "transparent",
+    border: "1px solid #ff6a6a",
+    opacity: 0.9,
+  };
+}
+
+export default function Header({
+  activeTab,
+  setActiveTab,
+  transportConnected,
+  pythonBridgeOnline,
+}) {
   return (
     <div className="dashboard-header">
       <div className="dashboard-header-row">
@@ -20,10 +41,9 @@ export default function Header({ activeTab, setActiveTab }) {
               width: 13,
               height: 13,
               borderRadius: "50%",
-              background: "transparent",
-              border: "1px solid #ff6a6a",
-              opacity: 0.9,
+              ...dotStyles(transportConnected),
             }}
+            title="Frontend websocket status"
           />
 
           <span
@@ -32,9 +52,9 @@ export default function Header({ activeTab, setActiveTab }) {
               width: 13,
               height: 13,
               borderRadius: "50%",
-              background: "#6AFF79",
-              boxShadow: "0 0 8px rgba(106,255,121,0.5)",
+              ...dotStyles(pythonBridgeOnline),
             }}
+            title="Python bridge status"
           />
         </div>
       </div>

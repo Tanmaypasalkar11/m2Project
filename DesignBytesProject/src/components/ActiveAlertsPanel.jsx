@@ -1,5 +1,3 @@
-import { ACTIVE_ALERTS } from "../data/mockData";
-
 function AlertCard({ alert }) {
   const iconSrc =
     alert.type === "warning"
@@ -17,12 +15,12 @@ function AlertCard({ alert }) {
   );
 }
 
-export default function ActiveAlertsPanel() {
+export default function ActiveAlertsPanel({ alerts }) {
   return (
     <div className="panel active-alerts-panel">
       <h2 className="panel-title active-alerts-title">Active Alerts</h2>
       <div className="active-alerts-list">
-        {ACTIVE_ALERTS.map((alert) => (
+        {alerts.map((alert) => (
           <AlertCard key={alert.id} alert={alert} />
         ))}
       </div>
