@@ -46,6 +46,8 @@ export default function Header({
   activeControlState,
 }) {
   const indicatorColor = resolveIndicatorColor(systemPower, activeControlState);
+  const activeDotStyle = dotStyles("green");
+  const inactiveDotStyle = dotStyles("off");
 
   return (
     <div className="dashboard-header">
@@ -66,7 +68,7 @@ export default function Header({
               width: 13,
               height: 13,
               borderRadius: "50%",
-              ...dotStyles(indicatorColor),
+              ...activeDotStyle,
             }}
             title="System status"
           />
@@ -77,7 +79,7 @@ export default function Header({
               width: 13,
               height: 13,
               borderRadius: "50%",
-              ...dotStyles(indicatorColor),
+              ...inactiveDotStyle,
             }}
             title="System status"
           />
@@ -88,7 +90,7 @@ export default function Header({
               width: 13,
               height: 13,
               borderRadius: "50%",
-              ...dotStyles(indicatorColor),
+              ...inactiveDotStyle,
             }}
             title="System status"
           />

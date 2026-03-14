@@ -18,18 +18,18 @@ html, body, #root {
 
 body {
   background: var(--dashboard-bg-gradient);
-  font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #fff;
 }
 
 button {
-  font-family: inter;
+  font-family: inherit;
 }
 
 :root {
-  --dashboard-bg-gradient: linear-gradient(270deg, #122225 -4.4%, #203033 99.66%);
+  --dashboard-bg-gradient: #19292c;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -72,7 +72,7 @@ button {
   min-height: var(--dashboard-frame-height);
   max-height: var(--dashboard-frame-height);
   background: var(--dashboard-bg-gradient);
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -391,20 +391,22 @@ button {
   flex: 1 0 0;
 }
 
-.fuel-cell-metric--with-divider {
+.fuel-cell-metric--with-divider,
+.fuel-cell-metric:not(:first-child) {
   position: relative;
   padding-left: 23px;
 }
 
-.fuel-cell-metric--with-divider::before {
+.fuel-cell-metric--with-divider::before,
+.fuel-cell-metric:not(:first-child)::before {
   content: "";
   position: absolute;
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 1px;
-  height: 76px;
-  background: rgba(51, 99, 108, 0.65);
+  width: 0.667px;
+  height: 89.943px;
+  background: #204D4C;
 }
 
 .fuel-cell-metric-label {
@@ -627,12 +629,11 @@ button {
 }
 
 .active-alert-card {
+  position: relative;
   display: flex;
-  padding: 3.333px 18px;
-  flex-direction: row;
-  justify-content: flex-start;
+  padding: 3.333px 8px;
   align-items: center;
-  gap: 20px;
+  justify-content: center;
   flex: 1 0 0;
   align-self: stretch;
   border-radius: 5.333px;
@@ -645,9 +646,9 @@ button {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  flex: 1 1 auto;
-  min-width: 0;
+  gap: 6.667px;
+  width: 188.667px;
+  max-width: 100%;
 }
 
 .active-alert-count {
@@ -656,17 +657,18 @@ button {
   color: #FFF;
   text-align: center;
   font-family: Inter, sans-serif;
-  font-size: 24px;
+  font-size: 22px;
   font-style: normal;
   font-weight: 600;
-  line-height: 20px;
+  line-height: 18.667px;
 }
 
 .active-alert-icon-wrap {
-  position: relative;
+  position: absolute;
+  left: 19px;
+  top: 50%;
+  transform: translateY(-50%);
   display: inline-flex;
-  width: 34px;
-  height: 31px;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
@@ -683,11 +685,11 @@ button {
 }
 
 .active-alert-icon {
-  width: 76px;
-  height: 54px;
   object-fit: contain;
   flex-shrink: 0;
   display: block;
+  position: relative;
+  z-index: 1;
 }
 
 .active-alert-label {
@@ -696,10 +698,62 @@ button {
   color: #FFF;
   text-align: center;
   font-family: Inter, sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   font-style: normal;
   font-weight: 400;
-  line-height: 19px;
+  line-height: 18.667px;
+}
+
+.active-alert-icon-wrap--warning,
+.active-alert-icon--warning {
+  width: 34.028px;
+  height: 27.523px;
+}
+
+.active-alert-icon-wrap--warning::before {
+  content: "";
+  position: absolute;
+  width: 78px;
+  height: 56px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: url("/Ellipse%202132.svg") center / contain no-repeat;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.active-alert-icon-wrap--danger,
+.active-alert-icon--danger {
+  width: 38.939px;
+  height: 35.023px;
+}
+
+.active-alert-icon-wrap--danger::before {
+  content: "";
+  position: absolute;
+  width: 78px;
+  height: 56px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: url("/ellipse-2132-danger.svg") center / contain no-repeat;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.active-alert-icon-wrap--danger::after {
+  content: "";
+  position: absolute;
+  width: 50px;
+  height: 1.333px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -35%) rotate(-35deg);
+  background: #FF5050;
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .control-state-panel {
@@ -832,6 +886,8 @@ button {
   background: rgba(58, 58, 59, 0.72);
   backdrop-filter: blur(12px);
   box-shadow: inset 1.5px 1.5px 9px 1.5px rgba(225, 224, 224, 0.12);
+  position: relative;
+  overflow: hidden;
   font-family: Poppins, sans-serif;
   font-size: 12px;
   font-style: normal;
@@ -841,6 +897,21 @@ button {
   cursor: pointer;
   transition: filter 0.15s ease;
   flex-shrink: 0;
+}
+
+.bottom-action-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.06) 55%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bottom-action-button > * {
+  position: relative;
+  z-index: 1;
 }
 
 .bottom-action-button--green {
@@ -908,11 +979,3 @@ button {
   font-weight: 600;
   line-height: normal;
 }
-
-
-
-
-
-
-
-
