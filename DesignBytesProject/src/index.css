@@ -76,6 +76,41 @@ button {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-frame::before {
+  content: "";
+  position: absolute;
+  left: -300px;
+  top: 140px;
+  width: 710.667px;
+  height: 764.667px;
+  border-radius: 764.667px;
+  background: rgba(45, 135, 152, 0.3);
+  filter: blur(63.23332977294922px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dashboard-frame::after {
+  content: "";
+  position: absolute;
+  right: -78px;
+  top: -36px;
+  width: 300.667px;
+  height: 331.333px;
+  border-radius: 331.333px;
+  background: rgba(45, 135, 152, 0.3);
+  filter: blur(63.23332977294922px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dashboard-frame > * {
+  position: relative;
+  z-index: 1;
 }
 
 .dashboard-header {
@@ -109,20 +144,6 @@ button {
   gap: 6px;
   position: relative;
   isolation: isolate;
-}
-
-.dashboard-status-dots::before {
-  content: "";
-  position: absolute;
-  right: -118px;
-  top: -159px;
-  width: 300.667px;
-  height: 331.333px;
-  border-radius: 331.333px;
-  background: rgba(45, 135, 152, 0.30);
-  filter: blur(63.23332977294922px);
-  pointer-events: none;
-  z-index: -1;
 }
 .dashboard-tabs-row {
   position: relative;
@@ -173,6 +194,8 @@ button {
   flex-direction: column;
   gap: var(--dashboard-section-gap);
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .dashboard-main-grid {

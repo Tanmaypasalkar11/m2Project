@@ -1,27 +1,52 @@
 import { TABS } from "../data/mockData";
 
-function dotStyles(isActive) {
-  if (isActive) {
-    return {
-      background: "#6AFF79",
-      border: "1px solid transparent",
-      boxShadow: "0 0 8px rgba(106,255,121,0.5)",
-    };
+function dotStyles(color) {
+  const styles = {
+    green: {
+      background: "#6aff79",
+      boxShadow: "0 0 10px rgba(106, 255, 121, 0.55)",
+    },
+    yellow: {
+      background: "#facc15",
+      boxShadow: "0 0 10px rgba(250, 204, 21, 0.5)",
+    },
+    red: {
+      background: "#f87171",
+      boxShadow: "0 0 10px rgba(248, 113, 113, 0.45)",
+    },
+    off: {
+      background: "rgba(255, 255, 255, 0.16)",
+      boxShadow: "none",
+    },
+  };
+
+  return styles[color] ?? styles.off;
+}
+
+function resolveIndicatorColor(systemPower, activeControlState) {
+  if (activeControlState === "Service Mode") {
+    return "yellow";
   }
 
-  return {
-    background: "transparent",
-    border: "1px solid #ff6a6a",
-    opacity: 0.9,
-  };
+  if (systemPower === "off") {
+    return "red";
+  }
+
+  if (systemPower === "on") {
+    return "green";
+  }
+
+  return "off";
 }
 
 export default function Header({
   activeTab,
   setActiveTab,
-  transportConnected,
-  pythonBridgeOnline,
+  systemPower,
+  activeControlState,
 }) {
+  const indicatorColor = resolveIndicatorColor(systemPower, activeControlState);
+
   return (
     <div className="dashboard-header">
       <div className="dashboard-header-row">
@@ -41,9 +66,9 @@ export default function Header({
               width: 13,
               height: 13,
               borderRadius: "50%",
-              ...dotStyles(transportConnected),
+              ...dotStyles(indicatorColor),
             }}
-            title="Frontend websocket status"
+            title="System status"
           />
 
           <span
@@ -52,9 +77,20 @@ export default function Header({
               width: 13,
               height: 13,
               borderRadius: "50%",
-              ...dotStyles(pythonBridgeOnline),
+              ...dotStyles(indicatorColor),
             }}
-            title="Python bridge status"
+            title="System status"
+          />
+
+          <span
+            style={{
+              display: "inline-block",
+              width: 13,
+              height: 13,
+              borderRadius: "50%",
+              ...dotStyles(indicatorColor),
+            }}
+            title="System status"
           />
         </div>
       </div>

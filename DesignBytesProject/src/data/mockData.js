@@ -3,6 +3,16 @@ export const HMI_PAGES = {
   fuelCell: "fuel_cell",
   methanolReformer: "methanol_reformer",
 };
+export const POWER_MODES = {
+  gensetOff: "GENSET_OFF",
+  powerGenerationOn: "POWER_GENERATION_ON",
+  powerGenerationOff: "POWER_GENERATION_OFF",
+};
+export const MR_MODES = {
+  run: "MR_RUN",
+  heatStandby: "MR_HEAT_STANDBY",
+};
+export const VALVE_KEYS = ["V1", "V2", "V3", "V4", "V5", "V6", "V7"];
 
 export const CONTROL_STATES = [
   "Stopped",
@@ -110,6 +120,37 @@ export function createFallbackDashboardState() {
       lastPythonUpdateAt: null,
       lastUiCommandAt: null,
       lastCommand: null,
+    },
+    controlSystem: {
+      powerMode: POWER_MODES.powerGenerationOn,
+      mrMode: MR_MODES.run,
+      h2BypassRequested: false,
+      pressureBypassActive: false,
+      pressureThresholdReached: false,
+      pressurePsi: 0,
+      pressureThresholdPsi: 27,
+      valves: {
+        V1: 1,
+        V2: 1,
+        V3: 1,
+        V4: 1,
+        V5: 0,
+        V6: null,
+        V7: 0,
+      },
+      canRequest: {
+        canId: "0x441",
+        cycleMs: 20,
+        outputValueW: 100,
+        outputUpperLimitW: 200,
+        controlStateCode: 2,
+      },
+      fcStatusSignals: {
+        emergencySwitchState: 1,
+        fcOutputLimitByOverheat: 0,
+        fcOutputLimitByCellvol: 1,
+        warningD4: 1,
+      },
     },
     fuelCell: {
       status: cloneStatus(),

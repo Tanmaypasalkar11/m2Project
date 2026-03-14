@@ -24,3 +24,8 @@ __pycache__/
 *.njsproj
 *.sln
 *.sw?
+.env
+generated/
+prisma/
+prisma.config.ts
+server/prismaClient.js

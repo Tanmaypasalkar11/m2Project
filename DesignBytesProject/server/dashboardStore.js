@@ -4,7 +4,10 @@ import {
   CONTROL_STATES,
   createFallbackDashboardState,
   HMI_PAGES,
+  MR_MODES,
+  POWER_MODES,
 } from "../src/data/mockData.js";
+import { createInitialControlSystem, deriveControlSystem } from "./controlEngine.js";
 
 // If Python stops sending data for this long, we mark the bridge as offline.
 const PYTHON_STALE_AFTER_MS = 10000;
@@ -12,16 +15,18 @@ const PYTHON_STALE_AFTER_MS = 10000;
 const DENSITY_AVERAGE_WINDOW = 5;
 const POWER_STATE_ON = "on";
 const POWER_STATE_OFF = "off";
+const POWERING_OFF_STATE = "Stop Processing";
+const POWERING_ON_STATE = "Start Processing";
 
 // Default command availability when Python does not explicitly send allowed actions.
 const COMMANDS_BY_CONTROL_STATE = {
-  Stopped: ["power_off"],
-  Sleep: ["power_off"],
-  "Service Mode": ["genset_off", "h2_bypass"],
-  "PS Available": ["power_off"],
-  "Start Processing": ["power_off"],
-  Idle: ["power_off", "h2_bypass"],
-  "Stop Processing": ["power_off"],
+  Stopped: ["power_on", "genset_off"],
+  Sleep: ["power_on", "genset_off"],
+  "Service Mode": ["power_on", "power_off", "genset_off", "h2_bypass"],
+  "PS Available": ["power_on", "power_off", "genset_off", "h2_bypass"],
+  "Start Processing": ["power_off", "genset_off", "h2_bypass"],
+  Idle: ["power_off", "genset_off", "h2_bypass"],
+  "Stop Processing": ["power_on", "genset_off", "h2_bypass"],
 };
 
 // Safely converts incoming alert counts into non-negative integers.
@@ -201,7 +206,7 @@ function dedupeActionIds(actionIds) {
 // Computes which footer buttons should be clickable for the current system state.
 function resolveEnabledActionIds(controlState, availableCommands, powerState) {
   if (powerState === POWER_STATE_OFF) {
-    return ["power_on"];
+    return ["power_on", "genset_off"];
   }
 
   if (Array.isArray(availableCommands) && availableCommands.length > 0) {
@@ -214,6 +219,18 @@ function resolveEnabledActionIds(controlState, availableCommands, powerState) {
   }
 
   return dedupeActionIds([...(COMMANDS_BY_CONTROL_STATE[controlState] ?? []), "power_off"]);
+}
+
+function resolveEnabledActionIdsForControlSystem(controlSystem) {
+  if (controlSystem.powerMode === POWER_MODES.gensetOff) {
+    return ["power_on"];
+  }
+
+  if (controlSystem.powerMode === POWER_MODES.powerGenerationOff) {
+    return ["power_on", "genset_off", "h2_bypass"];
+  }
+
+  return ["power_off", "genset_off", "h2_bypass"];
 }
 
 // Pulls density readings from any of the accepted payload field names.
@@ -256,6 +273,7 @@ export class DashboardStore {
   constructor() {
     // Starts with frontend fallback data so the UI has a full shape immediately.
     this.state = createFallbackDashboardState();
+    this.state.controlSystem = createInitialControlSystem();
     // Commands clicked in the UI are queued here for Python to read back.
     this.commandLog = [];
     this.commandSequence = 0;
@@ -266,21 +284,32 @@ export class DashboardStore {
   }
 
   // Forces the dashboard into a powered-down visual snapshot.
-  applyPoweredOffView() {
-    this.state.meta.systemPower = POWER_STATE_OFF;
-    this.state.fuelCell.controlState.active = "Stopped";
-    this.state.methanolReformer.controlState.active = "Stopped";
-    this.state.fuelCell.activeAlerts = this.state.fuelCell.activeAlerts.map((alert) => ({
-      ...alert,
-      count: 0,
-    }));
-    this.state.fuelCell.systemEcu = mergeSystemEcu(
-      {
-        outputRequest: { value: "0", unit: "W" },
-        startStop: { value: "OFF" },
-      },
-      this.state.fuelCell.systemEcu,
-    );
+  applyPoweredOffView(controlState = "Sleep", powerMode = POWER_MODES.gensetOff) {
+    this.state.meta.systemPower =
+      powerMode === POWER_MODES.gensetOff ? POWER_STATE_OFF : POWER_STATE_ON;
+    this.state.fuelCell.controlState.active = controlState;
+    this.state.methanolReformer.controlState.active = controlState;
+    if (powerMode === POWER_MODES.gensetOff) {
+      this.state.fuelCell.activeAlerts = this.state.fuelCell.activeAlerts.map((alert) => ({
+        ...alert,
+        count: 0,
+      }));
+      this.state.fuelCell.systemEcu = mergeSystemEcu(
+        {
+          outputRequest: { value: "0", unit: "W" },
+          startStop: { value: "OFF" },
+        },
+        this.state.fuelCell.systemEcu,
+      );
+    } else {
+      this.state.fuelCell.systemEcu = mergeSystemEcu(
+        {
+          outputRequest: { value: "750", unit: "W" },
+          startStop: { value: "OFF" },
+        },
+        this.state.fuelCell.systemEcu,
+      );
+    }
 
     const outputMetric = this.state.fuelCell.metrics.find((metric) => metric.label === "Output Value");
     const densityMetric = this.state.fuelCell.metrics.find(
@@ -291,21 +320,75 @@ export class DashboardStore {
       updateMetric(outputMetric, 0, "W");
     }
 
-    if (densityMetric) {
+    if (densityMetric && powerMode === POWER_MODES.gensetOff) {
       updateMetric(densityMetric, 0, "PPM");
       densityMetric.rawValue = 0;
       densityMetric.averageWindow = 1;
+      this.densitySamples = [0];
     }
 
-    this.densitySamples = [0];
-    this.state.fuelCell.commands = buildCommandList(["power_on"]);
+    this.state.controlSystem = deriveControlSystem({
+      previousControlSystem: this.state.controlSystem,
+      payload: {
+        mrMode: MR_MODES.heatStandby,
+        powerMode,
+      },
+      dashboardState: this.state,
+    });
+    this.state.fuelCell.commands = buildCommandList(
+      resolveEnabledActionIdsForControlSystem(this.state.controlSystem),
+    );
   }
 
   // Restores the dashboard into a powered-on transitional state until Python updates arrive.
-  applyPoweredOnView() {
+  applyPoweredOnView(controlState = POWERING_ON_STATE) {
     this.state.meta.systemPower = POWER_STATE_ON;
-    this.state.fuelCell.controlState.active = "Start Processing";
+    this.state.fuelCell.controlState.active = controlState;
+    this.state.methanolReformer.controlState.active = controlState;
     this.state.fuelCell.commands = buildCommandList(["power_off"]);
+
+    const outputMetric = this.state.fuelCell.metrics.find((metric) => metric.label === "Output Value");
+    const upperLimitMetric = this.state.fuelCell.metrics.find(
+      (metric) => metric.label === "Output Upper Limit",
+    );
+    const densityMetric = this.state.fuelCell.metrics.find(
+      (metric) => metric.label === "External Detector Density",
+    );
+
+    if (outputMetric && Number(outputMetric.value) === 0) {
+      updateMetric(outputMetric, 100, "W");
+    }
+
+    if (upperLimitMetric && Number(upperLimitMetric.value) === 0) {
+      updateMetric(upperLimitMetric, 200, "W");
+    }
+
+    if (densityMetric && Number(densityMetric.value) === 0) {
+      updateMetric(densityMetric, 150, "PPM");
+      densityMetric.rawValue = 150;
+      densityMetric.averageWindow = 1;
+      this.densitySamples = [150];
+    }
+
+    this.state.fuelCell.systemEcu = mergeSystemEcu(
+      {
+        outputRequest: { value: "750", unit: "W" },
+        startStop: { value: "ON" },
+      },
+      this.state.fuelCell.systemEcu,
+    );
+
+    this.state.controlSystem = deriveControlSystem({
+      previousControlSystem: this.state.controlSystem,
+      payload: {
+        mrMode: MR_MODES.run,
+        powerMode: POWER_MODES.powerGenerationOn,
+      },
+      dashboardState: this.state,
+    });
+    this.state.fuelCell.commands = buildCommandList(
+      resolveEnabledActionIdsForControlSystem(this.state.controlSystem),
+    );
   }
 
   setActivePage(pageKey) {
@@ -328,7 +411,12 @@ export class DashboardStore {
     return {
       activePage: this.state.meta.activePage,
       systemPower: this.state.meta.systemPower,
+      controlSystem: this.state.controlSystem,
     };
+  }
+
+  getControlSnapshot() {
+    return structuredClone(this.state.controlSystem);
   }
 
   // Lets the server attach a listener that will broadcast every state change.
@@ -401,7 +489,13 @@ export class DashboardStore {
     }
 
     if (nextPowerState === POWER_STATE_OFF) {
-      this.applyPoweredOffView();
+      const derivedPowerMode =
+        payload.powerMode === POWER_MODES.powerGenerationOff ||
+        nextControlState === POWERING_OFF_STATE ||
+        nextControlState === "Stopped"
+          ? POWER_MODES.powerGenerationOff
+          : POWER_MODES.gensetOff;
+      this.applyPoweredOffView(nextControlState, derivedPowerMode);
       this.lastPythonUpdateMs = Date.now();
       this.state.meta.pythonBridgeOnline = true;
       this.state.meta.lastPythonUpdateAt = new Date(this.lastPythonUpdateMs).toISOString();
@@ -471,6 +565,15 @@ export class DashboardStore {
       );
     }
 
+    this.state.controlSystem = deriveControlSystem({
+      previousControlSystem: this.state.controlSystem,
+      payload,
+      dashboardState: this.state,
+    });
+    this.state.fuelCell.commands = buildCommandList(
+      resolveEnabledActionIdsForControlSystem(this.state.controlSystem),
+    );
+
     this.lastPythonUpdateMs = Date.now();
     this.state.meta.pythonBridgeOnline = true;
     this.state.meta.lastPythonUpdateAt = new Date(this.lastPythonUpdateMs).toISOString();
@@ -482,7 +585,7 @@ export class DashboardStore {
   }
 
   // Records a UI button press so Python can consume it on the next poll.
-  createUiCommand(actionId) {
+  resolveUiAction(actionId) {
     const normalizedActionId = normalizeActionId(actionId);
 
     if (!normalizedActionId) {
@@ -495,11 +598,20 @@ export class DashboardStore {
       throw new Error("Requested action is not enabled for the current control state");
     }
 
+    return action;
+  }
+
+  // Records a UI button press so Python can consume it on the next poll.
+  createUiCommand(actionId, options = {}) {
+    const action = this.resolveUiAction(actionId);
+    const requestedAt = options.requestedAt ?? new Date().toISOString();
+
     const command = {
       id: ++this.commandSequence,
       actionId: action.id,
       label: action.label,
-      requestedAt: new Date().toISOString(),
+      requestedAt,
+      persistedCommandId: options.persistedCommandId ?? null,
     };
 
     this.commandLog.push(command);
@@ -509,12 +621,25 @@ export class DashboardStore {
     this.state.meta.lastCommand = command;
 
     if (command.actionId === "power_off") {
-      this.applyPoweredOffView();
+      this.applyPoweredOffView(POWERING_OFF_STATE, POWER_MODES.powerGenerationOff);
     }
 
     if (command.actionId === "power_on") {
-      this.applyPoweredOnView();
+      this.applyPoweredOnView(POWERING_ON_STATE);
     }
+
+    if (command.actionId === "genset_off") {
+      this.applyPoweredOffView("Stopped", POWER_MODES.gensetOff);
+    }
+
+    this.state.controlSystem = deriveControlSystem({
+      previousControlSystem: this.state.controlSystem,
+      actionId: command.actionId,
+      dashboardState: this.state,
+    });
+    this.state.fuelCell.commands = buildCommandList(
+      resolveEnabledActionIdsForControlSystem(this.state.controlSystem),
+    );
 
     this.emit("ui:command");
 

@@ -24,8 +24,8 @@ export default function App() {
         <Header
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          transportConnected={transportConnected}
-          pythonBridgeOnline={dashboardState.meta.pythonBridgeOnline}
+          systemPower={dashboardState.meta.systemPower}
+          activeControlState={dashboardState.fuelCell.controlState.active}
         />
 
         <main className="dashboard-main">
@@ -58,7 +58,12 @@ export default function App() {
               <ControlStatePanel controlState={dashboardState.fuelCell.controlState} />
             </>
           ) : (
-            <MethanolReformerPanel dashboard={dashboardState.methanolReformer} />
+            <MethanolReformerPanel
+              dashboard={{
+                ...dashboardState.methanolReformer,
+                controlSystem: dashboardState.controlSystem,
+              }}
+            />
           )}
         </main>
 

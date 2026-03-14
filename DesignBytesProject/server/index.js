@@ -1,7 +1,12 @@
+import "dotenv/config";
 import { createServer } from "node:http";
 import { URL } from "node:url";
 import { WebSocketServer } from "ws";
 import { DashboardStore } from "./dashboardStore.js";
+import { syncDatabase } from "./db.js";
+import { createButtonCommand, listButtonCommands } from "./buttonCommandRepository.js";
+import { listMachineStatuses, upsertMachineStatuses } from "./machineStatusRepository.js";
+import { buildStatusesFromSnapshot } from "./machineStatusService.js";
 
 // Local backend port used by the React app and the Python bridge.
 const PORT = Number.parseInt(process.env.HMI_PORT ?? "4000", 10);
@@ -85,9 +90,28 @@ const server = createServer(async (request, response) => {
       return;
     }
 
+    if (request.method === "GET" && requestUrl.pathname === "/api/hmi/command-history") {
+      const limit = Number.parseInt(requestUrl.searchParams.get("limit") ?? "50", 10);
+      const commands = await listButtonCommands(Number.isFinite(limit) ? limit : 50);
+      sendJson(response, 200, { commands });
+      return;
+    }
+
+    if (request.method === "GET" && requestUrl.pathname === "/api/hmi/statuses") {
+      const statuses = await listMachineStatuses();
+      sendJson(response, 200, { statuses });
+      return;
+    }
+
+    if (request.method === "GET" && requestUrl.pathname === "/api/hmi/control-state") {
+      sendJson(response, 200, { controlState: store.getControlSnapshot() });
+      return;
+    }
+
     if (request.method === "POST" && requestUrl.pathname === "/api/hmi/python-update") {
       const payload = await readJsonBody(request);
       const state = store.applyPythonUpdate(payload);
+      await upsertMachineStatuses(buildStatusesFromSnapshot(state));
       sendJson(response, 200, { ok: true, state });
       return;
     }
@@ -101,7 +125,18 @@ const server = createServer(async (request, response) => {
 
     if (request.method === "POST" && requestUrl.pathname === "/api/hmi/command") {
       const payload = await readJsonBody(request);
-      const command = store.createUiCommand(payload.actionId);
+      const action = store.resolveUiAction(payload.actionId);
+      const requestedAt = new Date().toISOString();
+      const persistedCommand = await createButtonCommand({
+        actionId: action.id,
+        label: action.label,
+        requestedAt,
+      });
+      const command = store.createUiCommand(payload.actionId, {
+        requestedAt,
+        persistedCommandId: persistedCommand.id,
+      });
+      await upsertMachineStatuses(buildStatusesFromSnapshot(store.getSnapshot()));
       sendJson(response, 200, { ok: true, command });
       return;
     }
@@ -170,6 +205,8 @@ server.on("upgrade", (request, socket, head) => {
 setInterval(() => {
   store.refreshPythonBridgeStatus();
 }, 1000);
+
+await syncDatabase();
 
 // Starts the backend server.
 server.listen(PORT, () => {
